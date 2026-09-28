@@ -90,7 +90,7 @@ N_CAND = len(CAND_T)
 T_N = (CAND_T - CAND_T.min()) / (CAND_T.max() - CAND_T.min())
 U_N = (CAND_U - CAND_U.min()) / (CAND_U.max() - CAND_U.min())
 
-def optimize_operation(comp, h2_spec=95.0, u_ref=0.07, w_u=0.5, margin=0.65):
+def optimize_operation(comp, h2_spec=95.0, u_ref=0.07, w_u=0.2, margin=0.65):
     comp = np.asarray(comp, float).ravel()
     Xc = np.empty((N_CAND, 7))
     Xc[:, :5] = comp
@@ -98,25 +98,18 @@ def optimize_operation(comp, h2_spec=95.0, u_ref=0.07, w_u=0.5, margin=0.65):
     Xc[:, 6] = CAND_T
 
     Y = surrogate.predict(Xc)
+    
+    # 안전 여유(margin) 포함 H2 순도 조건 만족 여부
     feas = Y[:, 0] >= (h2_spec + margin)
 
-    u_ref_grid = float(U_GRID[np.argmin(np.abs(U_GRID - u_ref))])
-    on_ref = np.isclose(CAND_U, u_ref_grid)
-    m1 = feas & on_ref
-
-    tier1 = None
-    if m1.any():
-        k1 = int(np.argmax(np.where(m1, CAND_T, -np.inf)))
-        tier1 = {
-            't_feed': float(CAND_T[k1]), 
-            'u_rinse': float(CAND_U[k1]), 
-            'h2_pred': float(Y[k1, 0]),
-            'co2_pred': float(Y[k1, 1]) if Y.shape[1] > 1 else 0.0
-        }
+    tier1 = None # 기존 tier1은 그대로 유지하되 안 써도 무방
 
     if feas.any():
+        # 📌 스코어링: 피드시간(T_N) 극대화 + 린스유속(U_N) 최적화 트레이드오프
+        # w_u 값을 조절하여 린스 유속 절감과 피드시간 연장의 우위 설정 가능
         score = np.where(feas, T_N - w_u * U_N, -np.inf)
         k2 = int(np.argmax(score))
+        
         tier2 = {
             't_feed': float(CAND_T[k2]), 
             'u_rinse': float(CAND_U[k2]), 
@@ -124,6 +117,7 @@ def optimize_operation(comp, h2_spec=95.0, u_ref=0.07, w_u=0.5, margin=0.65):
             'co2_pred': float(Y[k2, 1]) if Y.shape[1] > 1 else 0.0
         }
     else:
+        # 제약 만족 조건이 없을 경우 H2 순도 최고점 선택
         k2 = int(np.argmax(Y[:, 0]))
         tier2 = {
             't_feed': float(CAND_T[k2]), 
@@ -133,10 +127,7 @@ def optimize_operation(comp, h2_spec=95.0, u_ref=0.07, w_u=0.5, margin=0.65):
             'infeasible': True
         }
 
-    gain_dt = (tier2['t_feed'] - tier1['t_feed']) if (tier1 and 'infeasible' not in tier2) else 0.0
-    gain_pct = (gain_dt / tier1['t_feed'] * 100) if (tier1 and tier1['t_feed'] > 0) else 0.0
-
-    return tier1, tier2, gain_dt, gain_pct
+    return tier1, tier2, 0.0, 0.0
 
 # ==========================================
 # 4단계: 사이드바 - 실시간 입력 파라미터
@@ -330,77 +321,89 @@ with col_co2:
 st.divider()
 
 # ==========================================
-# 6단계: 최적 피드시간 탐색 기능
+# 6단계: 최적 피드시간 및 린스유속 제안 기능
 # ==========================================
-st.subheader("🛠️ 외란 응답형 최적 피드시간 제안")
-st.caption("가스 조성 변동 시 95.0% 순도 스펙을 만족하면서 생산성을 극대화하는 최적 피드시간을 제어기가 탐색합니다.")
+st.subheader("🛠️ 외란 응답형 최적 운전 조건(t_feed & u_rinse) 제안")
+st.caption("가스 조성 변동 시 95.0% 순도 스펙을 만족하면서 생산성을 극대화하는 최적 피드시간과 린스 유속을 제어기가 탐색합니다.")
 
+# 📌 [스타일 복원] 메인 화면 버튼 전용 커스텀 CSS (사이드바 제외)
 st.markdown("""
     <style>
+    /* 1. 메인 화면 버튼 배경색, 크기, 테두리 및 입체 그림자 복원 */
     [data-testid="stMainBlockContainer"] div.stButton > button {
         height: 5rem !important;
         border-radius: 12px !important;
-        background-color: #1F77B4 !important;
-        border: 1px solid #1D4ED8 !important;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3) !important;
+        background-color: #1F77B4 !important;    /* 👈 세련된 엔지니어링 블루 */
+        border: 1px solid #1D4ED8 !important;     /* 테두리 색상 */
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3) !important; /* 입체 그림자 */
         transition: all 0.2s ease-in-out !important;
     }
 
+    /* 2. 마우스 올려두었을 때 (Hover) 색상 변화 및 떠오르는 효과 */
     [data-testid="stMainBlockContainer"] div.stButton > button:hover {
-        background-color: #155E75 !important;
+        background-color: #155E75 !important;    /* 마우스 얹었을 때 더 짙은 색 */
         border-color: #38BDF8 !important;
-        transform: translateY(-2px);
+        transform: translateY(-2px) !important;
     }
 
+    /* 3. 버튼 내부 글자 크기(1.5rem), 굵기(600), 흰색 폰트 설정 */
     [data-testid="stMainBlockContainer"] div.stButton > button p,
     [data-testid="stMainBlockContainer"] div.stButton > button div[data-testid="stMarkdownContainer"] p {
-        font-size: 1.5rem !important;
-        font-weight: 600 !important;
-        color: #FFFFFF !important;
+        font-size: 1.5rem !important;            /* 글자 크기 */
+        font-weight: 600 !important;              /* 글자 굵기 */
+        color: #FFFFFF !important;                /* 글자 색상 (흰색) */
         letter-spacing: -0.5px !important;
     }
     </style>
 """, unsafe_allow_html=True)
 
+# 📌 [위치/크기 복원] 가운데 컬럼 비율 (1.5 : 2 : 1.5 -> 전체 화면의 50% 중앙 배치)
 col_b1, col_b2, col_b3 = st.columns([1.5, 2, 1.5])
 
 with col_b2:
-    btn_click = st.button("🚀 최적 피드시간 자동 탐색", type="primary", use_container_width=True)
+    btn_click = st.button("🚀 최적 운전 조건 자동 탐색", type="primary", use_container_width=True)
 
 if btn_click:
-    with st.spinner("후보 격자(1,107개 조건) 전수 추론 및 Tier 1/2 최적화 계산 중..."):
+    with st.spinner("후보 격자(1,107개 조건) 전수 추론 및 최적화 계산 중..."):
         t_start = time.perf_counter()
-        tier1, tier2, gain_dt, gain_pct = optimize_operation([y_H2, y_CO, y_H2O, y_CO2, y_CH4], h2_spec=95.0, u_ref=u_rinse)
+        _, tier2, _, _ = optimize_operation([y_H2, y_CO, y_H2O, y_CO2, y_CH4], h2_spec=95.0, u_ref=u_rinse)
         t_elapsed = (time.perf_counter() - t_start) * 1000
 
     st.success(f"⚡ 탐색 완료! (소요 시간: **{t_elapsed:.1f} ms**)")
     
     with st.expander("📌 **추천 운전 조건 결과 (클릭하여 접기/열기)**", expanded=True):
-        res_col1, res_col2 = st.columns(2)
-
-        with res_col1:
-            st.markdown("##### 🔹 **[1안] 린스 고정 - 피드시간 연장 모드**")
-            if tier1:
-                st.metric("추천 t_feed", f"{tier1['t_feed']:.0f} s", delta=f"{tier1['t_feed'] - t_feed:+.0f} s (현재 대비)")
-                st.write(f"- **고정 린스 유속 ($u_{{rinse}}$)**: `{tier1['u_rinse']:.4f} m/s`")
-                st.write(f"- **예상 H₂ 순도 / CO₂ 순도**: `{tier1['h2_pred']:.2f} %` / `{tier1['co2_pred']:.2f} %`")
-            else:
-                st.error("⚠️ 현재 린스 유속으로는 95% 순도 달성이 불가능합니다.")
-
-        with res_col2:
-            st.markdown("##### 🔸 **[2안] 생산량 극대화 모드 (권장)**")
-            if 'infeasible' not in tier2:
-                st.metric("추천 t_feed", f"{tier2['t_feed']:.0f} s", delta=f"+{gain_dt:.0f} s (Tier 1 대비 +{gain_pct:.1f}%)")
-                st.write(f"- **최적 린스 유속 ($u_{{rinse}}$)**: `{tier2['u_rinse']:.4f} m/s`")
-                st.write(f"- **예상 H₂ 순도 / CO₂ 순도**: `{tier2['h2_pred']:.2f} %` / `{tier2['co2_pred']:.2f} %`")
-            else:
-                st.error("🚨 제약 조건을 만족하는 운전 영역이 없습니다.")
-
         if tier2 and 'infeasible' not in tier2:
+            dt_from_current = tier2['t_feed'] - t_feed
+            gain_pct_current = (dt_from_current / t_feed * 100) if t_feed > 0 else 0.0
+            du_from_current = tier2['u_rinse'] - u_rinse
+
+            st.markdown("##### 🔸 **생산량 극대화 최적 운전 모드**")
+            
+            res_m1, res_m2 = st.columns(2)
+            
+            with res_m1:
+                st.metric(
+                    label="추천 피드시간 (t_feed)", 
+                    value=f"{tier2['t_feed']:.0f} s", 
+                    delta=f"{dt_from_current:+.0f} s (현재 대비 {gain_pct_current:+.1f}%)"
+                )
+            with res_m2:
+                st.metric(
+                    label="추천 린스유속 (u_rinse)", 
+                    value=f"{tier2['u_rinse']:.4f} m/s", 
+                    delta=f"{du_from_current:+.4f} m/s (현재 대비)"
+                )
+            
+            st.write(f"- **예상 H₂ 순도**: `{tier2['h2_pred']:.2f} %`")
+            st.write(f"- **예상 CO₂ 순도**: `{tier2['co2_pred']:.2f} %`")
+            
             st.info(
-                f"🎯 **제어 추천 요약**: 피드 시간을 기존 **{t_feed:.0f}초**에서 **{tier2['t_feed']:.0f}초**로 변경 시, "
-                f"제품 순도 **{tier2['h2_pred']:.2f}%**를 유지하면서 **생산 시간을 약 {gain_pct:.1f}% 향상**시킬 수 있습니다."
+                f"🎯 **제어 추천 요약**: 피드 시간을 기존 **{t_feed:.0f}초 $\\rightarrow$ {tier2['t_feed']:.0f}초**, "
+                f"린스 유속을 **{u_rinse:.4f} m/s $\\rightarrow$ {tier2['u_rinse']:.4f} m/s**로 제어 시, "
+                f"제품 순도 **{tier2['h2_pred']:.2f}%**를 유지하며 공정 제어를 최적화합니다."
             )
+        else:
+            st.error("🚨 95% 순도 제약 조건을 만족하는 운전 영역이 없습니다.")
 
 st.divider()
 st.caption("Created by 대리운전 Team of University of ULSAN | Model Version: alpha | Web Dashboard was built by W.J.JEONG")
