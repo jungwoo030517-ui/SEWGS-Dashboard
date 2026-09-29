@@ -209,7 +209,7 @@ preds = surrogate.predict(raw_input)[0]
 pred_h2_purity = float(preds[0])
 pred_co2_purity = float(preds[1]) if len(preds) > 1 else 0.0
 
-st.title("⚡ SEWGS 순도 예측 & 제어 시스템")
+st.title("⚡ SEWGS 최적 운전조건 제시 시스템")
 st.caption("PyTorch 기반 DNN 대리모델 실시간 수소/이산화탄소 순도 동시 예측 및 외란 응답형 제어 시스템")
 st.divider()
 
