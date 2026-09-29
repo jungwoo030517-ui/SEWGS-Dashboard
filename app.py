@@ -265,6 +265,13 @@ st.markdown("""
         font-weight: 800 !important;
         /* color 구문을 싹 제거하여 Streamlit 기본 테마 자동 전환 유지 */
     }
+    /* 3. 📌 5번 & 6번 메트릭 숫자 영역 Arial Bold 스타일 강제 적용 */
+    [data-testid="stMetricValue"] {
+        font-family: 'Arial', 'Helvetica Neue', 'Helvetica', sans-serif !important;
+        font-size: 2.8rem !important;
+        font-weight: 800 !important;  /* Arial Bold 굵기 */
+        letter-spacing: -1px !important; /* 숫자가 큼직하고 짱짱하게 들어오도록 자간 조절 */
+    }
 
     [data-testid="stMetricLabel"] {
         font-weight: 600 !important;
@@ -379,6 +386,13 @@ st.markdown("""
         font-size: 2.8rem !important;
         font-weight: 800 !important;
         /* color 구문을 싹 제거하여 Streamlit 기본 테마 자동 전환 유지 */
+    }
+    /* 3. 📌 5번 & 6번 메트릭 숫자 영역 Arial Bold 스타일 강제 적용 */
+    [data-testid="stMetricValue"] {
+        font-family: 'Arial', 'Helvetica Neue', 'Helvetica', sans-serif !important;
+        font-size: 2.8rem !important;
+        font-weight: 800 !important;  /* Arial Bold 굵기 */
+        letter-spacing: -1px !important; /* 숫자가 큼직하고 짱짱하게 들어오도록 자간 조절 */
     }
 
     [data-testid="stMetricLabel"] {
