@@ -329,7 +329,7 @@ st.caption("가스 조성 변동 시 95.0% 순도 스펙을 만족하면서 생�
 # 📌 메트릭 숫자는 건드리지 않고 '버튼 내 텍스트'만 정확히 타겟팅하는 수정 CSS
 st.markdown("""
     <style>
-    /* 1. 메인 버튼의 높이, 배경색, 입체 그림자 스타일 */
+    /* 1. 메인 버튼 스타일 지정 */
     [data-testid="stMainBlockContainer"] div.stButton > button {
         height: 5rem !important;
         border-radius: 12px !important;
@@ -339,20 +339,32 @@ st.markdown("""
         transition: all 0.2s ease-in-out !important;
     }
 
-    /* 2. 마우스 호버(Hover) 스타일 */
     [data-testid="stMainBlockContainer"] div.stButton > button:hover {
         background-color: #155E75 !important;
         border-color: #38BDF8 !important;
         transform: translateY(-2px) !important;
     }
 
-    /* 3. 🚨 [핵심 수정] 메트릭(st.metric)에 영향을 주지 않고 버튼 내부 텍스트만 엄격하게 지정 */
     [data-testid="stMainBlockContainer"] div.stButton > button p {
         font-size: 1.35rem !important;
         font-weight: 700 !important;
         color: #FFFFFF !important;
         letter-spacing: -0.5px !important;
         margin: 0 !important;
+    }
+
+    /* 2. 🚨 [신규 추가] 라이트/다크 모드 공통 st.metric 텍스트 색상 강제 지정 */
+    /* 메트릭 큰 숫자 (예: 97.37 %) */
+    [data-testid="stMetricValue"] {
+        color: #1E293B !important; /* 선명한 다크 슬레이트 톤 (흰 배경/검은 배경 모두 또렷함) */
+        font-size: 2.8rem !important;
+        font-weight: 800 !important;
+    }
+
+    /* 메트릭 상단 라벨 (예: H2 Dry Purity) */
+    [data-testid="stMetricLabel"] {
+        color: #475569 !important;
+        font-weight: 600 !important;
     }
     </style>
 """, unsafe_allow_html=True)
