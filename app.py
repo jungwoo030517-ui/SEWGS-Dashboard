@@ -102,16 +102,16 @@ def draw_purity_gauge(val, target_val, y_min=80, y_max=102, bar_color='#00C853')
     ax.set_facecolor('none')
 
     # 1. 초록색 메인 세로 막대 (오른쪽 배치)
-    ax.bar(0.65, val, color=bar_color, width=0.55, zorder=3, edgecolor='none')
+    ax.bar(0.65, val, color=bar_color, width=0.85, zorder=3, edgecolor='none')
 
     # 2. 100% 및 목표 수치(95% or 90%) 눈금 보조선 (가느다란 파란/슬레이트 계열)
     ax.hlines(y=100, xmin=0.0, xmax=0.35, color='#3B82F6', linestyle='-', linewidth=1.0, zorder=4)
     ax.hlines(y=target_val, xmin=0.0, xmax=0.35, color='#3B82F6', linestyle='-', linewidth=1.0, zorder=4)
 
     # 3. 축 왼쪽에 숫자 100과 95(또는 90) 크게 표시 (Arial/Sans-serif Bold)
-    ax.text(-0.1, 100, '100', color='#1E40AF', fontsize=15, fontweight='bold', 
+    ax.text(-0.1, 100, '100', color='#1E40AF', fontsize=10, fontweight='bold', 
             va='center', ha='right', fontfamily='Arial')
-    ax.text(-0.1, target_val, f'{int(target_val)}', color='#1E40AF', fontsize=15, fontweight='bold', 
+    ax.text(-0.1, target_val, f'{int(target_val)}', color='#1E40AF', fontsize=10, fontweight='bold', 
             va='center', ha='right', fontfamily='Arial')
 
     # 4. Y축 세로선만 가느다랗게 남기기 (x=0 위치)
