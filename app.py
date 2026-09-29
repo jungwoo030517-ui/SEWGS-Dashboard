@@ -91,43 +91,42 @@ N_CAND = len(CAND_T)
 T_N = (CAND_T - CAND_T.min()) / (CAND_T.max() - CAND_T.min())
 U_N = (CAND_U - CAND_U.min()) / (CAND_U.max() - CAND_U.min())
 
-def draw_purity_gauge(val, target_val, y_min=80, y_max=100, bar_color='#22C55E'):
+def draw_purity_gauge(val, target_val, y_min=80, y_max=102, bar_color='#00C853'):
     """
-    숫자 메트릭 옆에 들어갈 미니 세로 막대그래프 생성 함수
-    - val: 현재 예측 순도 (%)
-    - target_val: 기준 스펙 (H2: 95%, CO2: 90%)
-    - y_min, y_max: Y축 범위
+    사진 PPT 디자인 스타일을 그대로 반영한 미니 게이지 바
+    - 세로 Y축선 유지
+    - 100 및 목표 수치(95/90) 눈금선과 텍스트를 축 왼쪽에 정렬
     """
-    fig, ax = plt.subplots(figsize=(1.2, 2.5), dpi=120)
-    fig.patch.set_alpha(0.0)  # 배경 투명화
-    ax.set_facecolor('none')  # 그래프 내부 배경 투명화
+    fig, ax = plt.subplots(figsize=(1.4, 2.8), dpi=130)
+    fig.patch.set_alpha(0.0)  # 투명 배경
+    ax.set_facecolor('none')
 
-    # 1. 단일 세로 막대 그리기
-    ax.bar(0, val, color=bar_color, width=0.4, zorder=3, edgecolor='none', alpha=0.9)
+    # 1. 초록색 메인 세로 막대 (오른쪽 배치)
+    ax.bar(0.65, val, color=bar_color, width=0.55, zorder=3, edgecolor='none')
 
-    # 2. 100% 실선 및 목표 스펙 점선 표시
-    ax.axhline(100, color='#94A3B8', linestyle='-', linewidth=1.2, zorder=4)      # 100% 기준선
-    ax.axhline(target_val, color='#EF4444', linestyle='--', linewidth=1.5, zorder=5) # 목표 스펙 기준선 (빨간 점선)
+    # 2. 100% 및 목표 수치(95% or 90%) 눈금 보조선 (가느다란 파란/슬레이트 계열)
+    ax.hlines(y=100, xmin=0.0, xmax=0.35, color='#3B82F6', linestyle='-', linewidth=1.0, zorder=4)
+    ax.hlines(y=target_val, xmin=0.0, xmax=0.35, color='#3B82F6', linestyle='-', linewidth=1.0, zorder=4)
 
-    # 3. 목표 수치 텍스트 표시 (선 오른쪽에 가느다랗게 표출)
-    ax.text(0.28, target_val, f'{target_val:.0f}%', color='#EF4444', fontsize=9, 
-            fontweight='bold', va='center', ha='left')
-    ax.text(0.28, 100, '100%', color='#94A3B8', fontsize=8, va='center', ha='left')
+    # 3. 축 왼쪽에 숫자 100과 95(또는 90) 크게 표시 (Arial/Sans-serif Bold)
+    ax.text(-0.1, 100, '100', color='#1E40AF', fontsize=15, fontweight='bold', 
+            va='center', ha='right', fontfamily='Arial')
+    ax.text(-0.1, target_val, f'{int(target_val)}', color='#1E40AF', fontsize=15, fontweight='bold', 
+            va='center', ha='right', fontfamily='Arial')
 
-    # 4. 축 및 눈금 깔끔하게 가공 (가느다란 Y축만 남기기)
-    ax.set_ylim(y_min, 102)
-    ax.set_xlim(-0.3, 0.8)
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    ax.spines['bottom'].set_visible(False)
-    ax.spines['left'].set_color('#64748B')
-    ax.spines['left'].set_linewidth(1.0) # 가느다란 라인 축
+    # 4. Y축 세로선만 가느다랗게 남기기 (x=0 위치)
+    ax.vlines(x=0.0, ymin=y_min, ymax=100, color='#3B82F6', linestyle='-', linewidth=1.0, zorder=2)
 
-    # X축 및 Y축 텍스트 눈금 제거 (메트릭 숫자가 바로 옆에 있으므로 축 깔끔화)
+    # 5. 불필요한 테두리 및 기본 축 싹 제거
+    ax.set_ylim(y_min, y_max)
+    ax.set_xlim(-0.8, 1.1)
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+
     ax.set_xticks([])
     ax.set_yticks([])
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.1)
     return fig
 
 def optimize_operation(comp, h2_spec=95.0, u_ref=0.07, w_u=0.2, margin=0.65):
