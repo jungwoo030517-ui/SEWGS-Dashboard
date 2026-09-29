@@ -110,7 +110,7 @@ def draw_purity_card_html(title, purity_val, target_val, delta_val, is_h2=True):
         delta_color = "#28a745" if delta_val >= 0 else "#ffc107"
 
     # Y축 범위를 둘 다 80~100%로 완전 동일하게 고정 (95선이 90선보다 바르게 위에 그어짐)
-    y_min = 50
+    y_min = 70
     fill_percent = max(0, min(100, (purity_val - y_min) / (100.0 - y_min) * 100))
     target_percent = max(0, min(100, (target_val - y_min) / (100.0 - y_min) * 100))
 
