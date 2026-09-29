@@ -110,7 +110,7 @@ def draw_purity_card_html(title, purity_val, target_val, delta_val, is_h2=True):
         delta_color = "#28a745" if delta_val >= 0 else "#ffc107"
 
     # Y축 범위를 둘 다 80~100%로 완전 동일하게 고정 (95선이 90선보다 바르게 위에 그어짐)
-    y_min = 80.0
+    y_min = 50
     fill_percent = max(0, min(100, (purity_val - y_min) / (100.0 - y_min) * 100))
     target_percent = max(0, min(100, (target_val - y_min) / (100.0 - y_min) * 100))
 
@@ -130,7 +130,7 @@ def draw_purity_card_html(title, purity_val, target_val, delta_val, is_h2=True):
 <div style="width: 5px; height: 1.5px; background-color: #64748B;"></div>
 </div>
 <div style="position: absolute; top: 0; bottom: 0; left: 29px; width: 1.5px; background-color: #64748B;"></div>
-<div style="position: absolute; bottom: 0; left: 34px; width: 30px; height: {fill_percent}%; background-color: {bar_color}; border-radius: 3px 3px 0 0; transition: height 0.4s ease-in-out;"></div>
+<div style="position: absolute; bottom: 0; left: 34px; width: 40px; height: {fill_percent}%; background-color: {bar_color}; border-radius: 3px 3px 0 0; transition: height 0.4s ease-in-out;"></div>
 </div>
 </div>
 <div style="background-color: {status_bg}; border: 1px solid {status_border}; border-radius: 8px; padding: 12px; text-align: center; color: {status_border}; font-weight: bold; font-size: 1.35rem;">{status_text}</div>
