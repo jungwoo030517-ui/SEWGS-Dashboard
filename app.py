@@ -91,12 +91,6 @@ N_CAND = len(CAND_T)
 T_N = (CAND_T - CAND_T.min()) / (CAND_T.max() - CAND_T.min())
 U_N = (CAND_U - CAND_U.min()) / (CAND_U.max() - CAND_U.min())
 
-사진 스타일에서 요청한 세부 디테일(숫자 크기 소형화, 짙은 회색 톤 축선/눈금, 더 넓고 도톰한 막대 비율)을 완벽히 반영한 draw_purity_gauge 수정 코드야.
-
-🛠️ 디자인 교정 헬퍼 함수 (draw_purity_gauge)
-Python
-import matplotlib.pyplot as plt
-
 def draw_purity_gauge(val, target_val, y_min=80, y_max=102, bar_color='#00C853'):
     """
     사진 스타일 맞춤 미니 게이지 바:
