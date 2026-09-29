@@ -6,6 +6,7 @@ import pandas as pd
 import torch
 import torch.nn as nn
 import streamlit as st
+import matplotlib.pyplot as plt
 
 # ==========================================
 # 1단계: 웹 페이지 기본 설정
@@ -89,6 +90,45 @@ N_CAND = len(CAND_T)
 
 T_N = (CAND_T - CAND_T.min()) / (CAND_T.max() - CAND_T.min())
 U_N = (CAND_U - CAND_U.min()) / (CAND_U.max() - CAND_U.min())
+
+def draw_purity_gauge(val, target_val, y_min=80, y_max=100, bar_color='#22C55E'):
+    """
+    숫자 메트릭 옆에 들어갈 미니 세로 막대그래프 생성 함수
+    - val: 현재 예측 순도 (%)
+    - target_val: 기준 스펙 (H2: 95%, CO2: 90%)
+    - y_min, y_max: Y축 범위
+    """
+    fig, ax = plt.subplots(figsize=(1.2, 2.5), dpi=120)
+    fig.patch.set_alpha(0.0)  # 배경 투명화
+    ax.set_facecolor('none')  # 그래프 내부 배경 투명화
+
+    # 1. 단일 세로 막대 그리기
+    ax.bar(0, val, color=bar_color, width=0.4, zorder=3, edgecolor='none', alpha=0.9)
+
+    # 2. 100% 실선 및 목표 스펙 점선 표시
+    ax.axhline(100, color='#94A3B8', linestyle='-', linewidth=1.2, zorder=4)      # 100% 기준선
+    ax.axhline(target_val, color='#EF4444', linestyle='--', linewidth=1.5, zorder=5) # 목표 스펙 기준선 (빨간 점선)
+
+    # 3. 목표 수치 텍스트 표시 (선 오른쪽에 가느다랗게 표출)
+    ax.text(0.28, target_val, f'{target_val:.0f}%', color='#EF4444', fontsize=9, 
+            fontweight='bold', va='center', ha='left')
+    ax.text(0.28, 100, '100%', color='#94A3B8', fontsize=8, va='center', ha='left')
+
+    # 4. 축 및 눈금 깔끔하게 가공 (가느다란 Y축만 남기기)
+    ax.set_ylim(y_min, 102)
+    ax.set_xlim(-0.3, 0.8)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['bottom'].set_visible(False)
+    ax.spines['left'].set_color('#64748B')
+    ax.spines['left'].set_linewidth(1.0) # 가느다란 라인 축
+
+    # X축 및 Y축 텍스트 눈금 제거 (메트릭 숫자가 바로 옆에 있으므로 축 깔끔화)
+    ax.set_xticks([])
+    ax.set_yticks([])
+
+    plt.tight_layout(pad=0.2)
+    return fig
 
 def optimize_operation(comp, h2_spec=95.0, u_ref=0.07, w_u=0.2, margin=0.65):
     comp = np.asarray(comp, float).ravel()
@@ -284,13 +324,30 @@ st.markdown("""
 with col_h2:
     st.subheader("🎯 예측 H₂ 순도")
     
+    # 📌 메트릭(숫자) 영역과 막대그래프 영역 서브 분할
+    sub_h2_c1, sub_h2_c2 = st.columns([2.2, 1.0])
+    
     delta_h2 = pred_h2_purity - 95.0
-    st.metric(
-        label="H₂ Dry Purity",
-        value=f"{pred_h2_purity:.2f} %",
-        delta=f"{delta_h2:+.2f} % (목표 95.0% 대비)"
-    )
+    
+    with sub_h2_c1:
+        st.metric(
+            label="H₂ Dry Purity",
+            value=f"{pred_h2_purity:.2f} %",
+            delta=f"{delta_h2:+.2f} % (목표 95.0% 대비)"
+        )
 
+    with sub_h2_c2:
+        # H2 막대 색상: 95% 이상은 녹색(#28a745), 미만은 빨간색(#dc3545)
+        h2_bar_color = '#28a745' if pred_h2_purity >= 95.0 else '#dc3545'
+        fig_h2 = draw_purity_gauge(
+            val=pred_h2_purity, 
+            target_val=95.0, 
+            y_min=85.0,  # H2 변동 폭에 적합한 최솟값
+            bar_color=h2_bar_color
+        )
+        st.pyplot(fig_h2, use_container_width=True)
+
+    # 기존 커스텀 상태 카드 스타일 유지
     if pred_h2_purity >= 95.0:
         st.markdown(
             """
@@ -312,19 +369,35 @@ with col_h2:
         
     st.caption("ℹ️ 고순도 수소 생산 기준: 95.0%")
 
-# 2) CO2 순도 카드 (우측 두 번째 - 신규 추가 ✨)
+# 2) CO2 순도 카드 (우측 두 번째)
 with col_co2:
     st.subheader("🌱 예측 CO₂ 순도")
     
-    # 예시 CO2 목표 기준 90.0% 설정
     CO2_SPEC = 90.0
     delta_co2 = pred_co2_purity - CO2_SPEC
-    st.metric(
-        label="CO₂ Dry Purity",
-        value=f"{pred_co2_purity:.2f} %",
-        delta=f"{delta_co2:+.2f} % (기준 {CO2_SPEC:.1f}% 대비)"
-    )
 
+    # 📌 메트릭(숫자) 영역과 막대그래프 영역 서브 분할
+    sub_co2_c1, sub_co2_c2 = st.columns([2.2, 1.0])
+    
+    with sub_co2_c1:
+        st.metric(
+            label="CO₂ Dry Purity",
+            value=f"{pred_co2_purity:.2f} %",
+            delta=f"{delta_co2:+.2f} % (기준 {CO2_SPEC:.1f}% 대비)"
+        )
+
+    with sub_co2_c2:
+        # CO2 막대 색상: 90% 이상은 녹색(#28a745), 미만은 노란/주황색(#ffc107)
+        co2_bar_color = '#28a745' if pred_co2_purity >= CO2_SPEC else '#ffc107'
+        fig_co2 = draw_purity_gauge(
+            val=pred_co2_purity, 
+            target_val=CO2_SPEC, 
+            y_min=50.0,  # CO2 변동 폭에 적합한 최솟값
+            bar_color=co2_bar_color
+        )
+        st.pyplot(fig_co2, use_container_width=True)
+
+    # 기존 커스텀 상태 카드 스타일 유지
     if pred_co2_purity >= CO2_SPEC:
         st.markdown(
             """
