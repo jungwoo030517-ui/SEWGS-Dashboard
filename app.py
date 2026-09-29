@@ -91,42 +91,49 @@ N_CAND = len(CAND_T)
 T_N = (CAND_T - CAND_T.min()) / (CAND_T.max() - CAND_T.min())
 U_N = (CAND_U - CAND_U.min()) / (CAND_U.max() - CAND_U.min())
 
+사진 스타일에서 요청한 세부 디테일(숫자 크기 소형화, 짙은 회색 톤 축선/눈금, 더 넓고 도톰한 막대 비율)을 완벽히 반영한 draw_purity_gauge 수정 코드야.
+
+🛠️ 디자인 교정 헬퍼 함수 (draw_purity_gauge)
+Python
+import matplotlib.pyplot as plt
+
 def draw_purity_gauge(val, target_val, y_min=80, y_max=102, bar_color='#00C853'):
     """
-    사진 PPT 디자인 스타일을 그대로 반영한 미니 게이지 바
-    - 세로 Y축선 유지
-    - 100 및 목표 수치(95/90) 눈금선과 텍스트를 축 왼쪽에 정렬
+    사진 스타일 맞춤 미니 게이지 바:
+    - 100, 95(or 90) 축 눈금 숫자 크기 축소 (fontsize=10~11)
+    - 보조선 및 축 숫자 색상을 짙은 회색(#475569)으로 적용
+    - 막대 그래프 두께를 더 뚱뚱하게 확장 (width=0.85)
     """
-    fig, ax = plt.subplots(figsize=(1.4, 2.8), dpi=130)
+    fig, ax = plt.subplots(figsize=(1.5, 2.6), dpi=130)
     fig.patch.set_alpha(0.0)  # 투명 배경
     ax.set_facecolor('none')
 
-    # 1. 초록색 메인 세로 막대 (오른쪽 배치)
-    ax.bar(0.65, val, color=bar_color, width=0.85, zorder=3, edgecolor='none')
+    # 1. 뚱뚱하고 꽉 찬 세로 막대 (width 키워서 더 도톰하게)
+    ax.bar(0.6, val, color=bar_color, width=0.85, zorder=3, edgecolor='none')
 
-    # 2. 100% 및 목표 수치(95% or 90%) 눈금 보조선 (가느다란 파란/슬레이트 계열)
-    ax.hlines(y=100, xmin=0.0, xmax=0.35, color='#3B82F6', linestyle='-', linewidth=1.0, zorder=4)
-    ax.hlines(y=target_val, xmin=0.0, xmax=0.35, color='#3B82F6', linestyle='-', linewidth=1.0, zorder=4)
+    # 2. 보조선 (짙은 회색 톤: #64748B)
+    ax.hlines(y=100, xmin=0.0, xmax=0.15, color='#64748B', linestyle='-', linewidth=1.0, zorder=4)
+    ax.hlines(y=target_val, xmin=0.0, xmax=0.15, color='#64748B', linestyle='-', linewidth=1.0, zorder=4)
 
-    # 3. 축 왼쪽에 숫자 100과 95(또는 90) 크게 표시 (Arial/Sans-serif Bold)
-    ax.text(-0.1, 100, '100', color='#1E40AF', fontsize=10, fontweight='bold', 
+    # 3. 짙은 회색 축 숫자 (100, 95/90) - 크기를 좀 더 작고 정갈하게 (fontsize=11)
+    ax.text(-0.08, 100, '100', color='#475569', fontsize=11, fontweight='bold', 
             va='center', ha='right', fontfamily='Arial')
-    ax.text(-0.1, target_val, f'{int(target_val)}', color='#1E40AF', fontsize=10, fontweight='bold', 
+    ax.text(-0.08, target_val, f'{int(target_val)}', color='#475569', fontsize=11, fontweight='bold', 
             va='center', ha='right', fontfamily='Arial')
 
-    # 4. Y축 세로선만 가느다랗게 남기기 (x=0 위치)
-    ax.vlines(x=0.0, ymin=y_min, ymax=100, color='#3B82F6', linestyle='-', linewidth=1.0, zorder=2)
+    # 4. 세로 Y축선 (짙은 회색)
+    ax.vlines(x=0.0, ymin=y_min, ymax=100, color='#64748B', linestyle='-', linewidth=1.0, zorder=2)
 
-    # 5. 불필요한 테두리 및 기본 축 싹 제거
+    # 5. 여백 및 화면 범위 최적화
     ax.set_ylim(y_min, y_max)
-    ax.set_xlim(-0.8, 1.1)
+    ax.set_xlim(-0.6, 1.15)
     for spine in ax.spines.values():
         spine.set_visible(False)
 
     ax.set_xticks([])
     ax.set_yticks([])
 
-    plt.tight_layout(pad=0.1)
+    plt.tight_layout(pad=0.05)
     return fig
 
 def optimize_operation(comp, h2_spec=95.0, u_ref=0.07, w_u=0.2, margin=0.65):
