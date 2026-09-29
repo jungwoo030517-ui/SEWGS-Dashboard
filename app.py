@@ -235,19 +235,40 @@ with col_table:
 # 📌 st.metric 내부 숫자 크기 및 넙덕한 기계식 폰트 적용 CSS
 st.markdown("""
     <style>
-    /* 메트릭 값(숫자) 영역 타깃팅 */
-    div[data-testid="stMetricValue"] {
-        font-size: 3.2rem !important;                     /* 숫자 크기 확대 */
-        font-family: 'Arial', monospace !important;       /* 넙덕한 폰트 */
-        font-weight: 900 !important;                      /* 아주 굵게 */
-        letter-spacing: -1px !important;                 /* 자간 촘촘하게 */
-        color: #ffffff !important;                       /* 숫자 색상 (밝게) */
+    /* 1. 메인 버튼 스타일 지정 */
+    [data-testid="stMainBlockContainer"] div.stButton > button {
+        height: 5rem !important;
+        border-radius: 12px !important;
+        background-color: #1F77B4 !important;
+        border: 1px solid #1D4ED8 !important;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3) !important;
+        transition: all 0.2s ease-in-out !important;
     }
 
-    /* 메트릭 라벨 글자 크기 조절 */
-    div[data-testid="stMetricLabel"] {
-        font-size: 1.15rem !important;
-        font-weight: bold !important;
+    [data-testid="stMainBlockContainer"] div.stButton > button:hover {
+        background-color: #155E75 !important;
+        border-color: #38BDF8 !important;
+        transform: translateY(-2px) !important;
+    }
+
+    [data-testid="stMainBlockContainer"] div.stButton > button p {
+        font-size: 1.35rem !important;
+        font-weight: 700 !important;
+        color: #FFFFFF !important;
+        letter-spacing: -0.5px !important;
+        margin: 0 !important;
+    }
+
+    /* 2. 🚨 st.metric 테마 자동 반응 (color 고정 해제) */
+    [data-testid="stMetricValue"] {
+        font-size: 2.8rem !important;
+        font-weight: 800 !important;
+        /* color 구문을 싹 제거하여 Streamlit 기본 테마 자동 전환 유지 */
+    }
+
+    [data-testid="stMetricLabel"] {
+        font-weight: 600 !important;
+        /* color 구문을 싹 제거하여 Streamlit 기본 테마 자동 전환 유지 */
     }
     </style>
 """, unsafe_allow_html=True)
@@ -353,18 +374,16 @@ st.markdown("""
         margin: 0 !important;
     }
 
-    /* 2. 🚨 [신규 추가] 라이트/다크 모드 공통 st.metric 텍스트 색상 강제 지정 */
-    /* 메트릭 큰 숫자 (예: 97.37 %) */
+    /* 2. 🚨 st.metric 테마 자동 반응 (color 고정 해제) */
     [data-testid="stMetricValue"] {
-        color: #1E293B !important; /* 선명한 다크 슬레이트 톤 (흰 배경/검은 배경 모두 또렷함) */
         font-size: 2.8rem !important;
         font-weight: 800 !important;
+        /* color 구문을 싹 제거하여 Streamlit 기본 테마 자동 전환 유지 */
     }
 
-    /* 메트릭 상단 라벨 (예: H2 Dry Purity) */
     [data-testid="stMetricLabel"] {
-        color: #475569 !important;
         font-weight: 600 !important;
+        /* color 구문을 싹 제거하여 Streamlit 기본 테마 자동 전환 유지 */
     }
     </style>
 """, unsafe_allow_html=True)
