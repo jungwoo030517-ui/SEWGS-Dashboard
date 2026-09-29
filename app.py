@@ -214,11 +214,11 @@ for name in PRESETS.keys():
 st.sidebar.markdown("---")
 
 st.sidebar.subheader("1. 피드 가스 조성 (Mole Fraction)")
-y_H2  = st.sidebar.number_input("y_H2", min_value=0.0, max_value=1.0, step=0.005, format="%.4f", key="y_H2")
-y_CO  = st.sidebar.number_input("y_CO", min_value=0.0, max_value=1.0, step=0.005, format="%.4f", key="y_CO")
-y_H2O = st.sidebar.number_input("y_H2O", min_value=0.0, max_value=1.0, step=0.005, format="%.4f", key="y_H2O")
-y_CO2 = st.sidebar.number_input("y_CO2", min_value=0.0, max_value=1.0, step=0.005, format="%.4f", key="y_CO2")
-y_CH4 = st.sidebar.number_input("y_CH4", min_value=0.0, max_value=1.0, step=0.001, format="%.4f", key="y_CH4")
+y_H2  = st.sidebar.number_input("y_H2 gray[0.28~0.42]", min_value=0.0, max_value=1.0, step=0.005, format="%.4f", key="y_H2")
+y_CO  = st.sidebar.number_input("y_CO gray[0.01~0.06]", min_value=0.0, max_value=1.0, step=0.005, format="%.4f", key="y_CO")
+y_H2O = st.sidebar.number_input("y_H2O gray[0.4~0.6]", min_value=0.0, max_value=1.0, step=0.005, format="%.4f", key="y_H2O")
+y_CO2 = st.sidebar.number_input("y_CO2 gray[0.06~0.18]", min_value=0.0, max_value=1.0, step=0.005, format="%.4f", key="y_CO2")
+y_CH4 = st.sidebar.number_input("y_CH4 gray[0.01~0.025]", min_value=0.0, max_value=1.0, step=0.001, format="%.4f", key="y_CH4")
 current_comp = [y_H2, y_CO, y_H2O, y_CO2, y_CH4]
 
 mole_sum = y_H2 + y_CO + y_H2O + y_CO2 + y_CH4
