@@ -93,14 +93,15 @@ U_N = (CAND_U - CAND_U.min()) / (CAND_U.max() - CAND_U.min())
 
 def draw_purity_card_html(title, purity_val, target_val, delta_val, is_h2=True):
     """
-    주석 및 구문 오류를 완전 제거하여 모바일/PC 상관없이 
-    깔끔하게 렌더링되는 HTML/CSS 인라인 미니 게이지 카드
+    1. Y축 범위를 80~100%로 완전 동일하게 통일 (95선이 90선보다 확실히 위에 위치)
+    2. 눈금 숫자(100, 95, 90) 위치를 가로 눈금선 중앙에 수평 정렬
+    3. 막대 두께를 뚱뚱하게(32px) 확장
     """
     if is_h2:
         is_pass = purity_val >= target_val
         bar_color = "#28a745" if is_pass else "#dc3545"
         status_text = "✅ 정상운전 중" if is_pass else "🚨 비정상 탐지"
-        status_bg = "rgba(40, 167, 69, 0.2)" if is_pass else "rgba(220, 53, 69, 0.2)"
+        status_bg = "rgba(40, 167, 69, 0.2)" if is_pass else "#dc3545"
         status_border = "#28a745" if is_pass else "#dc3545"
         caption_text = f"ℹ️ 고순도 수소 생산 기준: {target_val:.1f}%"
         delta_color = "#28a745" if delta_val >= 0 else "#dc3545"
@@ -113,8 +114,8 @@ def draw_purity_card_html(title, purity_val, target_val, delta_val, is_h2=True):
         caption_text = f"ℹ️ CO₂ 포집/저장 가이드라인: {target_val:.1f}%"
         delta_color = "#28a745" if delta_val >= 0 else "#ffc107"
 
-    # Y축 범위에 맞춰 막대 높이 % 계산
-    y_min = 85.0 if is_h2 else 50.0
+    # 📌 [핵심 1] Y축 하단을 둘 다 80.0%로 통일해서 상대적 위치(비율) 정밀 일치!
+    y_min = 80.0
     fill_percent = max(0, min(100, (purity_val - y_min) / (100.0 - y_min) * 100))
     target_percent = max(0, min(100, (target_val - y_min) / (100.0 - y_min) * 100))
 
@@ -124,22 +125,34 @@ def draw_purity_card_html(title, purity_val, target_val, delta_val, is_h2=True):
         <div style="font-family: 'Arial', sans-serif; font-size: 2.6rem; font-weight: 800; line-height: 1.1; letter-spacing: -1px;">{purity_val:.2f} %</div>
         <div style="font-size: 0.85rem; font-weight: bold; color: {delta_color}; margin-top: 6px; font-family: 'Arial', sans-serif;">{delta_val:+.2f} % ({'목표' if is_h2 else '기준'} {target_val:.1f}% 대비)</div>
     </div>
-    <div style="display: flex; align-items: center; gap: 6px; height: 75px;">
-        <div style="display: flex; flex-direction: column; justify-content: space-between; height: 100%; font-family: 'Arial', sans-serif; font-size: 11px; font-weight: bold; color: #64748B; text-align: right;">
-            <span>100</span>
-            <span>{int(target_val)}</span>
+    
+    <!-- 우측 세로 게이지 영역 (높이 85px) -->
+    <div style="position: relative; width: 80px; height: 85px;">
+        <!-- 100% 눈금선 & 숫자 -->
+        <div style="position: absolute; top: 0%; left: 0; right: 0; display: flex; align-items: center; transform: translateY(-50%);">
+            <span style="width: 25px; font-family: 'Arial', sans-serif; font-size: 11px; font-weight: bold; color: #64748B; text-align: right; padding-right: 4px;">100</span>
+            <div style="width: 6px; height: 1.5px; background-color: #64748B;"></div>
         </div>
-        <div style="position: relative; width: 22px; height: 100%; border-left: 1.5px solid #64748B; padding-left: 3px;">
-            <div style="position: absolute; top: 0; left: 0; width: 5px; height: 1px; background-color: #64748B;"></div>
-            <div style="position: absolute; bottom: {target_percent}%; left: 0; width: 5px; height: 1px; background-color: #64748B;"></div>
-            <div style="position: absolute; bottom: 0; left: 3px; width: 17px; height: {fill_percent}%; background-color: {bar_color}; border-radius: 2px;"></div>
+
+        <!-- 스펙 목표값(95 or 90) 눈금선 & 숫자 -->
+        <div style="position: absolute; bottom: {target_percent}%; left: 0; right: 0; display: flex; align-items: center; transform: translateY(50%);">
+            <span style="width: 25px; font-family: 'Arial', sans-serif; font-size: 11px; font-weight: bold; color: #64748B; text-align: right; padding-right: 4px;">{int(target_val)}</span>
+            <div style="width: 6px; height: 1.5px; background-color: #64748B;"></div>
         </div>
+
+        <!-- 세로 Y축선 -->
+        <div style="position: absolute; top: 0; bottom: 0; left: 31px; width: 1.5px; background-color: #64748B;"></div>
+
+        <!-- 📌 [핵심 2] 뚱뚱해진 세로 막대 (width: 32px) -->
+        <div style="position: absolute; bottom: 0; left: 36px; width: 32px; height: {fill_percent}%; background-color: {bar_color}; border-radius: 3px 3px 0 0; transition: height 0.4s ease-in-out;"></div>
     </div>
 </div>
+
 <div style="background-color: {status_bg}; border: 1px solid {status_border}; border-radius: 8px; padding: 12px; text-align: center; color: {status_border}; font-weight: bold; font-size: 1.35rem;">{status_text}</div>
 <div style="font-size: 0.8rem; opacity: 0.6; margin-top: 6px;">{caption_text}</div>"""
 
     return html_code
+    
 def optimize_operation(comp, h2_spec=95.0, u_ref=0.07, w_u=0.2, margin=0.65):
     comp = np.asarray(comp, float).ravel()
     Xc = np.empty((N_CAND, 7))
