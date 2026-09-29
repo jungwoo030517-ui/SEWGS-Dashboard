@@ -228,8 +228,22 @@ if abs(mole_sum - 1.0) > 0.01:
 # 📌 2. (Operating Conditions) 제거
 st.sidebar.subheader("2. 조업 조건")
 
+t_feed = st.sidebar.number_input(
+    "반응 단계 시간 (s)",
+    min_value=50.0,
+    max_value=410.0,
+    value=228.03,
+    step=1.0,
+    format="%.2f",
+    key="t_feed"
+)
+
+st.sidebar.markdown(
+    "<p style='color: #EF4444; font-size: 0.8rem; font-weight: bold; margin-top: -10px; margin-bottom: 15px;'>주의: 권장 범위는 210~410입니다.</p>", 
+    unsafe_allow_html=True
+)
 u_rinse = st.sidebar.number_input(
-    "Rinse 유속 (m/s)",
+    "린스 유속 (m/s)",
     min_value=0.0100,
     max_value=0.5000,
     value=0.1991,
@@ -244,20 +258,7 @@ st.sidebar.markdown(
     unsafe_allow_html=True
 )
 
-t_feed = st.sidebar.number_input(
-    "Feed 스텝 시간 (s)",
-    min_value=50.0,
-    max_value=410.0,
-    value=228.03,
-    step=1.0,
-    format="%.2f",
-    key="t_feed"
-)
 
-st.sidebar.markdown(
-    "<p style='color: #EF4444; font-size: 0.8rem; font-weight: bold; margin-top: -10px; margin-bottom: 15px;'>주의: 권장 범위는 210~410입니다.</p>", 
-    unsafe_allow_html=True
-)
 # ==========================================
 # 5단계: 실시간 추론 및 메인 대시보드 화면
 # ==========================================
@@ -346,7 +347,7 @@ st.divider()
 # ==========================================
 # 6단계: 최적 피드시간 및 린스유속 제안 기능
 # ==========================================
-st.subheader("🛠️ 외란 응답형 최적 운전 조건(t_feed & u_rinse) 제안")
+st.subheader("🛠️ 최적 운전 조건(반응 시간 & 린스 유속) 제안")
 st.caption("가스 조성 변동 시 95.0% 순도 스펙을 만족하면서 생산성을 극대화하는 최적 피드시간과 린스 유속을 제어기가 탐색합니다.")
 
 # 📌 메트릭 숫자는 건드리지 않고 '버튼 내 텍스트'만 정확히 타겟팅하는 수정 CSS
