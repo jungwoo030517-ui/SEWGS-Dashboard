@@ -91,44 +91,75 @@ N_CAND = len(CAND_T)
 T_N = (CAND_T - CAND_T.min()) / (CAND_T.max() - CAND_T.min())
 U_N = (CAND_U - CAND_U.min()) / (CAND_U.max() - CAND_U.min())
 
-def draw_purity_gauge(val, target_val, y_min=80, y_max=102, bar_color='#00C853'):
+def draw_purity_card_html(title, purity_val, target_val, delta_val, is_h2=True):
     """
-    사진 스타일 맞춤 미니 게이지 바:
-    - 100, 95(or 90) 축 눈금 숫자 크기 축소 (fontsize=10~11)
-    - 보조선 및 축 숫자 색상을 짙은 회색(#475569)으로 적용
-    - 막대 그래프 두께를 더 뚱뚱하게 확장 (width=0.85)
+    모바일/PC 어디서나 반응형으로 레이아웃이 깨지지 않는
+    HTML/CSS 기반 인라인 미니 게이지 카드
     """
-    fig, ax = plt.subplots(figsize=(1.5, 2.6), dpi=130)
-    fig.patch.set_alpha(0.0)  # 투명 배경
-    ax.set_facecolor('none')
+    # 색상 설정
+    if is_h2:
+        is_pass = purity_val >= target_val
+        bar_color = "#28a745" if is_pass else "#dc3545"
+        status_text = "✅ 정상운전 중" if is_pass else "🚨 비정상 탐지"
+        status_bg = "rgba(40, 167, 69, 0.2)" if is_pass else "rgba(220, 53, 69, 0.2)"
+        status_border = "#28a745" if is_pass else "#dc3545"
+        caption_text = f"ℹ️ 고순도 수소 생산 기준: {target_val:.1f}%"
+    else:
+        is_pass = purity_val >= target_val
+        bar_color = "#28a745" if is_pass else "#ffc107"
+        status_text = "🍃 포집 규격 만족" if is_pass else "⚠️ 포집 성능 주시"
+        status_bg = "rgba(40, 167, 69, 0.2)" if is_pass else "rgba(255, 193, 7, 0.2)"
+        status_border = "#28a745" if is_pass else "#ffc107"
+        caption_text = f"ℹ️ CO₂ 포집/저장 가이드라인: {target_val:.1f}%"
 
-    # 1. 뚱뚱하고 꽉 찬 세로 막대 (width 키워서 더 도톰하게)
-    ax.bar(0.6, val, color=bar_color, width=0.85, zorder=3, edgecolor='none')
+    # 게이지 막대 높이 계산 (80%~100% 범위를 막대 높이 0~100%로 매핑)
+    y_min = 80.0 if is_h2 else 50.0
+    fill_percent = max(0, min(100, (purity_val - y_min) / (100.0 - y_min) * 100))
+    target_percent = max(0, min(100, (target_val - y_min) / (100.0 - y_min) * 100))
 
-    # 2. 보조선 (짙은 회색 톤: #64748B)
-    ax.hlines(y=100, xmin=0.0, xmax=0.15, color='#64748B', linestyle='-', linewidth=1.0, zorder=4)
-    ax.hlines(y=target_val, xmin=0.0, xmax=0.15, color='#64748B', linestyle='-', linewidth=1.0, zorder=4)
+    html_code = f"""
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 0;">
+        <!-- [좌측] 숫자 메트릭 영역 -->
+        <div>
+            <div style="font-size: 0.9rem; font-weight: 600; opacity: 0.7; margin-bottom: 2px;">
+                {'H₂' if is_h2 else 'CO₂'} Dry Purity
+            </div>
+            <div style="font-family: 'Arial', sans-serif; font-size: 2.5rem; font-weight: 800; line-height: 1.1;">
+                {purity_val:.2f} %
+            </div>
+            <div style="font-size: 0.85rem; font-weight: bold; color: {'#28a745' if delta_val >= 0 else '#dc3545'}; margin-top: 4px;">
+                {delta_val:+.2f} % ({'목표' if is_h2 else '기준'} {target_val:.1f}% 대비)
+            </div>
+        </div>
 
-    # 3. 짙은 회색 축 숫자 (100, 95/90) - 크기를 좀 더 작고 정갈하게 (fontsize=11)
-    ax.text(-0.08, 100, '100', color='#475569', fontsize=11, fontweight='bold', 
-            va='center', ha='right', fontfamily='Arial')
-    ax.text(-0.08, target_val, f'{int(target_val)}', color='#475569', fontsize=11, fontweight='bold', 
-            va='center', ha='right', fontfamily='Arial')
+        <!-- [우측] 숫자 높이에 딱 맞춘 슬림 세로 게이지 (높이 75px 고정) -->
+        <div style="display: flex; align-items: center; gap: 6px; height: 75px;">
+            <!-- 눈금 숫자 (100, 95/90) -->
+            <div style="display: flex; flex-direction: column; justify-content: space-between; height: 100%; font-family: 'Arial'; font-size: 10px; font-weight: bold; color: #64748B; text-align: right;">
+                <span>100</span>
+                <span>{int(target_val)}</span>
+            </div>
+            <!-- Y축선 및 보조선 + 세로 막대 -->
+            <div style="position: relative; width: 22px; height: 100%; border-left: 1.5px solid #64748B; padding-left: 3px;">
+                <!-- 100% 눈금 보조선 -->
+                <div style="position: absolute; top: 0; left: 0; width: 5px; height: 1px; background-color: #64748B;"></div>
+                <!-- 목표 스펙 눈금 보조선 -->
+                <div style="position: absolute; bottom: {target_percent}%; left: 0; width: 5px; height: 1px; background-color: #64748B;"></div>
+                <!-- 초록색 게이지 바 -->
+                <div style="position: absolute; bottom: 0; left: 4px; width: 16px; height: {fill_percent}%; background-color: {bar_color}; border-radius: 2px; transition: height 0.5s ease;"></div>
+            </div>
+        </div>
+    </div>
 
-    # 4. 세로 Y축선 (짙은 회색)
-    ax.vlines(x=0.0, ymin=y_min, ymax=100, color='#64748B', linestyle='-', linewidth=1.0, zorder=2)
-
-    # 5. 여백 및 화면 범위 최적화
-    ax.set_ylim(y_min, y_max)
-    ax.set_xlim(-0.6, 1.15)
-    for spine in ax.spines.values():
-        spine.set_visible(False)
-
-    ax.set_xticks([])
-    ax.set_yticks([])
-
-    plt.tight_layout(pad=0.05)
-    return fig
+    <!-- 상태 카드 -->
+    <div style="background-color: {status_bg}; border: 1px solid {status_border}; border-radius: 8px; padding: 12px; text-align: center; color: {status_border}; font-weight: bold; font-size: 1.2rem; margin-top: 10px;">
+        {status_text}
+    </div>
+    <div style="font-size: 0.8rem; opacity: 0.6; margin-top: 6px;">
+        {caption_text}
+    </div>
+    """
+    return html_code
 
 def optimize_operation(comp, h2_spec=95.0, u_ref=0.07, w_u=0.2, margin=0.65):
     comp = np.asarray(comp, float).ravel()
@@ -256,6 +287,7 @@ st.divider()
 # 레이아웃 비율: 좌측 요약표(1.1) / 우측 H2 순도(1.0) / 우측 CO2 순도(1.0)
 col_table, col_h2, col_co2 = st.columns([1.1, 1.0, 1.0], gap="medium")
 
+# 📌 [좌측] 입력 운전 조건 요약표
 with col_table:
     st.subheader("📋 입력 운전 조건 및 현황")
     
@@ -272,10 +304,10 @@ with col_table:
     
     st.dataframe(df_summary, use_container_width=True, hide_index=True)
 
-# 📌 st.metric 내부 숫자 크기 및 넙덕한 기계식 폰트 적용 CSS
+# 📌 6단계 최적화 탐색 버튼 전용 CSS (메트릭 스타일과 분리)
 st.markdown("""
     <style>
-    /* 1. 메인 버튼 스타일 지정 */
+    /* 메인 버튼 전용 커스텀 스타일 */
     [data-testid="stMainBlockContainer"] div.stButton > button {
         height: 5rem !important;
         border-radius: 12px !important;
@@ -292,132 +324,34 @@ st.markdown("""
     }
 
     [data-testid="stMainBlockContainer"] div.stButton > button p {
+        font-family: 'Arial', sans-serif !important;
         font-size: 1.35rem !important;
         font-weight: 700 !important;
         color: #FFFFFF !important;
         letter-spacing: -0.5px !important;
         margin: 0 !important;
     }
-
-    /* 2. 🚨 st.metric 테마 자동 반응 (color 고정 해제) */
-    [data-testid="stMetricValue"] {
-        font-size: 2.8rem !important;
-        font-weight: 800 !important;
-        /* color 구문을 싹 제거하여 Streamlit 기본 테마 자동 전환 유지 */
-    }
-    /* 3. 📌 5번 & 6번 메트릭 숫자 영역 Arial Bold 스타일 강제 적용 */
-    [data-testid="stMetricValue"] {
-        font-family: 'Arial', 'Helvetica Neue', 'Helvetica', sans-serif !important;
-        font-size: 2.8rem !important;
-        font-weight: 800 !important;  /* Arial Bold 굵기 */
-        letter-spacing: -1px !important; /* 숫자가 큼직하고 짱짱하게 들어오도록 자간 조절 */
-    }
-
-    [data-testid="stMetricLabel"] {
-        font-weight: 600 !important;
-        /* color 구문을 싹 제거하여 Streamlit 기본 테마 자동 전환 유지 */
-    }
     </style>
 """, unsafe_allow_html=True)
 
-# 1) H2 순도 카드 (우측 첫 번째)
+# 📌 [우측 1] H2 순도 카드
 with col_h2:
     st.subheader("🎯 예측 H₂ 순도")
-    
-    # 📌 메트릭(숫자) 영역과 막대그래프 영역 서브 분할
-    sub_h2_c1, sub_h2_c2 = st.columns([2.2, 1.0])
-    
     delta_h2 = pred_h2_purity - 95.0
-    
-    with sub_h2_c1:
-        st.metric(
-            label="H₂ Dry Purity",
-            value=f"{pred_h2_purity:.2f} %",
-            delta=f"{delta_h2:+.2f} % (목표 95.0% 대비)"
-        )
+    st.markdown(
+        draw_purity_card_html("H₂ Dry Purity", pred_h2_purity, 95.0, delta_h2, is_h2=True),
+        unsafe_allow_html=True
+    )
 
-    with sub_h2_c2:
-        # H2 막대 색상: 95% 이상은 녹색(#28a745), 미만은 빨간색(#dc3545)
-        h2_bar_color = '#28a745' if pred_h2_purity >= 95.0 else '#dc3545'
-        fig_h2 = draw_purity_gauge(
-            val=pred_h2_purity, 
-            target_val=95.0, 
-            y_min=85.0,  # H2 변동 폭에 적합한 최솟값
-            bar_color=h2_bar_color
-        )
-        st.pyplot(fig_h2, use_container_width=True)
-
-    # 기존 커스텀 상태 카드 스타일 유지
-    if pred_h2_purity >= 95.0:
-        st.markdown(
-            """
-            <div style="background-color: rgba(40, 167, 69, 0.2); border: 1px solid #28a745; border-radius: 8px; padding: 15px; text-align: center; color: #28a745; font-weight: bold; font-size: 1.35rem;">
-                ✅ 정상운전 중
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-    else:
-        st.markdown(
-            """
-            <div style="background-color: rgba(220, 53, 69, 0.2); border: 1px solid #dc3545; border-radius: 8px; padding: 15px; text-align: center; color: #dc3545; font-weight: bold; font-size: 1.35rem;">
-                🚨 비정상 탐지
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-        
-    st.caption("ℹ️ 고순도 수소 생산 기준: 95.0%")
-
-# 2) CO2 순도 카드 (우측 두 번째)
+# 📌 [우측 2] CO2 순도 카드
 with col_co2:
     st.subheader("🌱 예측 CO₂ 순도")
-    
     CO2_SPEC = 90.0
     delta_co2 = pred_co2_purity - CO2_SPEC
-
-    # 📌 메트릭(숫자) 영역과 막대그래프 영역 서브 분할
-    sub_co2_c1, sub_co2_c2 = st.columns([2.2, 1.0])
-    
-    with sub_co2_c1:
-        st.metric(
-            label="CO₂ Dry Purity",
-            value=f"{pred_co2_purity:.2f} %",
-            delta=f"{delta_co2:+.2f} % (기준 {CO2_SPEC:.1f}% 대비)"
-        )
-
-    with sub_co2_c2:
-        # CO2 막대 색상: 90% 이상은 녹색(#28a745), 미만은 노란/주황색(#ffc107)
-        co2_bar_color = '#28a745' if pred_co2_purity >= CO2_SPEC else '#ffc107'
-        fig_co2 = draw_purity_gauge(
-            val=pred_co2_purity, 
-            target_val=CO2_SPEC, 
-            y_min=50.0,  # CO2 변동 폭에 적합한 최솟값
-            bar_color=co2_bar_color
-        )
-        st.pyplot(fig_co2, use_container_width=True)
-
-    # 기존 커스텀 상태 카드 스타일 유지
-    if pred_co2_purity >= CO2_SPEC:
-        st.markdown(
-            """
-            <div style="background-color: rgba(40, 167, 69, 0.2); border: 1px solid #28a745; border-radius: 8px; padding: 15px; text-align: center; color: #28a745; font-weight: bold; font-size: 1.35rem;">
-                🍃 포집 규격 만족
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-    else:
-        st.markdown(
-            """
-            <div style="background-color: rgba(255, 193, 7, 0.2); border: 1px solid #ffc107; border-radius: 8px; padding: 15px; text-align: center; color: #ffc107; font-weight: bold; font-size: 1.35rem;">
-                ⚠️ 포집 성능 주시
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-        
-    st.caption(f"ℹ️ CO₂ 포집/저장 가이드라인: {CO2_SPEC:.1f}%")
+    st.markdown(
+        draw_purity_card_html("CO₂ Dry Purity", pred_co2_purity, CO2_SPEC, delta_co2, is_h2=False),
+        unsafe_allow_html=True
+    )
 
 st.divider()
 
