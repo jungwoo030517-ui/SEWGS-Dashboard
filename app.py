@@ -326,33 +326,33 @@ st.divider()
 st.subheader("🛠️ 외란 응답형 최적 운전 조건(t_feed & u_rinse) 제안")
 st.caption("가스 조성 변동 시 95.0% 순도 스펙을 만족하면서 생산성을 극대화하는 최적 피드시간과 린스 유속을 제어기가 탐색합니다.")
 
-# 📌 [스타일 복원] 메인 화면 버튼 전용 커스텀 CSS (사이드바 제외)
+# 📌 메트릭 숫자는 건드리지 않고 '버튼 내 텍스트'만 정확히 타겟팅하는 수정 CSS
 st.markdown("""
     <style>
-    /* 1. 메인 화면 버튼 배경색, 크기, 테두리 및 입체 그림자 복원 */
+    /* 1. 메인 버튼의 높이, 배경색, 입체 그림자 스타일 */
     [data-testid="stMainBlockContainer"] div.stButton > button {
         height: 5rem !important;
         border-radius: 12px !important;
-        background-color: #1F77B4 !important;    /* 👈 세련된 엔지니어링 블루 */
-        border: 1px solid #1D4ED8 !important;     /* 테두리 색상 */
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3) !important; /* 입체 그림자 */
+        background-color: #1F77B4 !important;
+        border: 1px solid #1D4ED8 !important;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3) !important;
         transition: all 0.2s ease-in-out !important;
     }
 
-    /* 2. 마우스 올려두었을 때 (Hover) 색상 변화 및 떠오르는 효과 */
+    /* 2. 마우스 호버(Hover) 스타일 */
     [data-testid="stMainBlockContainer"] div.stButton > button:hover {
-        background-color: #155E75 !important;    /* 마우스 얹었을 때 더 짙은 색 */
+        background-color: #155E75 !important;
         border-color: #38BDF8 !important;
         transform: translateY(-2px) !important;
     }
 
-    /* 3. 버튼 내부 글자 크기(1.5rem), 굵기(600), 흰색 폰트 설정 */
-    [data-testid="stMainBlockContainer"] div.stButton > button p,
-    [data-testid="stMainBlockContainer"] div.stButton > button div[data-testid="stMarkdownContainer"] p {
-        font-size: 1.5rem !important;            /* 글자 크기 */
-        font-weight: 600 !important;              /* 글자 굵기 */
-        color: #FFFFFF !important;                /* 글자 색상 (흰색) */
+    /* 3. 🚨 [핵심 수정] 메트릭(st.metric)에 영향을 주지 않고 버튼 내부 텍스트만 엄격하게 지정 */
+    [data-testid="stMainBlockContainer"] div.stButton > button p {
+        font-size: 1.35rem !important;
+        font-weight: 700 !important;
+        color: #FFFFFF !important;
         letter-spacing: -0.5px !important;
+        margin: 0 !important;
     }
     </style>
 """, unsafe_allow_html=True)
