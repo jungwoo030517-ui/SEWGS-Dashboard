@@ -225,7 +225,8 @@ mole_sum = y_H2 + y_CO + y_H2O + y_CO2 + y_CH4
 if abs(mole_sum - 1.0) > 0.01:
     st.sidebar.warning(f"⚠️ 조성 총합 = {mole_sum:.4f} (1.0 기준 점검 권장)")
 
-st.sidebar.subheader("2. 조업 조건 (Operating Conditions)")
+# 📌 2. (Operating Conditions) 제거
+st.sidebar.subheader("2. 조업 조건")
 
 u_rinse = st.sidebar.number_input(
     "Rinse 유속 (m/s)",
@@ -235,6 +236,12 @@ u_rinse = st.sidebar.number_input(
     step=0.0050,
     format="%.4f",
     key="u_rinse"
+)
+
+# 📌 Rinse 유속 밑에 빨간색 안내 텍스트 추가
+st.sidebar.markdown(
+    "<p style='color: #EF4444; font-size: 0.8rem; font-weight: bold; margin-top: -10px; margin-bottom: 15px;'>주의: 권장 범위는 0.07~0.2입니다.</p>", 
+    unsafe_allow_html=True
 )
 
 t_feed = st.sidebar.number_input(
@@ -247,6 +254,10 @@ t_feed = st.sidebar.number_input(
     key="t_feed"
 )
 
+st.sidebar.markdown(
+    "<p style='color: #EF4444; font-size: 0.8rem; font-weight: bold; margin-top: -10px; margin-bottom: 15px;'>주의: 권장 범위는 210~410입니다.</p>", 
+    unsafe_allow_html=True
+)
 # ==========================================
 # 5단계: 실시간 추론 및 메인 대시보드 화면
 # ==========================================
