@@ -269,7 +269,8 @@ preds = surrogate.predict(raw_input)[0]
 pred_h2_purity = float(preds[0])
 pred_co2_purity = float(preds[1]) if len(preds) > 1 else 0.0
 
-st.title("⚡ SEWGS 대리운전")
+# 기존 st.title("⚡ SEWGS 대리운전") 대체 
+st.markdown("<h1 style='font-size: 2.1rem; font-weight: 800; margin-bottom: -10px;'>⚡ SEWGS 대리운전</h1>", unsafe_allow_html=True)
 st.caption("PyTorch 기반 DNN 대리모델 실시간 수소/이산화탄소 순도 동시 예측 및 외란 응답형 제시 시스템")
 st.divider()
 
